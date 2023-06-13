@@ -20,12 +20,17 @@ const getAllProperties = async (req, res) => {
         _sort,
         title_like = "",
         propertyType = "",
+        status = "",
     } = req.query;
 
     const query = {};
 
     if (propertyType !== "") {
         query.propertyType = propertyType;
+    }
+
+    if (status !== "") {
+        query.status = status;
     }
 
     if (title_like) {
@@ -64,7 +69,7 @@ const getPropertyDetail = async (req, res) => {
 
 const createProperty = async (req, res) => {
     try {
-        const { title, description, propertyType, location, price, photo, email } = req.body;
+        const { title, description, propertyType, status, location, price, photo, email } = req.body;
 
         // Start a new session
         const session = await mongoose.startSession();
@@ -79,9 +84,8 @@ const createProperty = async (req, res) => {
 
         const photoUrl = await cloudinary.uploader.upload(photo);
 
-        const newProperty = await Property.create({ title, description, propertyType, location, price, photo: photoUrl.url, creator: user._id });
+        const newProperty = await Property.create({ title, description, propertyType, status, location, price, photo: photoUrl.url, creator: user._id });
 
-        console.log('user:', user);
         user.allProperties.push(newProperty._id);
         await user.save({session});
 
@@ -96,7 +100,7 @@ const createProperty = async (req, res) => {
 const updateProperty = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, propertyType, location, price, photo } =
+        const { title, description, propertyType, status, location, price, photo } =
             req.body;
 
         const photoUrl = await cloudinary.uploader.upload(photo);
@@ -107,6 +111,7 @@ const updateProperty = async (req, res) => {
                 title,
                 description,
                 propertyType,
+                status,
                 location,
                 price,
                 photo: photoUrl.url || photo,
